@@ -12,9 +12,7 @@
         v-bind:key="mapItem"
         :style="{ 'grid-column': mapItem.posX, 'grid-row': mapItem.posY }"
         :class="mapItem.ground"
-      >
-        hey
-      </div>
+      ></div>
     </div>
   </div>
 </template>
@@ -55,14 +53,16 @@ export default class Map extends Vue {
 .map-container {
   display: flex;
   justify-content: center;
-  align-items: center;
+  margin-top: 20px;
 
   .map {
-    width: 100%;
+    width: calc(85vh / 6 * 10);
     display: grid;
     grid-template-columns: repeat(10, auto);
 
     > div {
+      height: calc(85vh / 6);
+
       &.ROAD {
         background-color: grey;
       }
