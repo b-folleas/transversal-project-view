@@ -1,12 +1,6 @@
 <template>
   <div class="map-container">
     <div class="map">
-      <!-- <div v-for="line in map" v-bind:key="line" class="line">
-      <div v-for="col in line" v-bind:key="col" class="col">
-        {{ col }}
-      </div>
-    </div> -->
-
       <div
         v-for="mapItem in mapItems"
         v-bind:key="mapItem"
@@ -17,7 +11,18 @@
           height: squareSize + 'px',
         }"
         :class="mapItem.ground"
-      ></div>
+      >
+        <div class="square" v-if="isTruckOnMapItem(mapItem)">
+          <img
+            :style="{
+              width: squareSize + 'px',
+            }"
+            src="../assets/pictures/truck.png"
+            alt="truck.jpg"
+          />
+          <span>{{ isTruckOnMapItem(mapItem) }}</span>
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -27,17 +32,11 @@ import { Vue } from "vue-class-component";
 import { MapItem } from "../model/MapItem";
 import { Truck } from "../model/Truck";
 import MapItemsDataService from "../service/mapItemsDataService";
+import TruckDataService from "../service/truckDataService";
 
 export default class Map extends Vue {
-  public map: string[][] = [
-    ["", "", "", "", "", "", "", "", "", ""],
-    ["", "", "", "", "", "", "", "", "", ""],
-    ["", "", "", "", "", "", "", "", "", ""],
-    ["", "", "", "", "", "", "", "", "", ""],
-    ["", "", "", "", "", "", "", "", "", ""],
-    ["", "", "", "", "", "", "", "", "", ""],
-  ];
   public mapItems: MapItem[] = [];
+  public trucks: Truck[] = [];
   public squareSize = 0;
 
   created() {
@@ -45,6 +44,15 @@ export default class Map extends Vue {
       .then((res) => {
         console.log("mapItems : ", res.data);
         this.mapItems = res.data;
+      })
+      .catch((error) => {
+        console.error(error);
+      });
+
+    TruckDataService.getAll()
+      .then((res) => {
+        console.log("trucks : ", res.data);
+        this.trucks = res.data;
       })
       .catch((error) => {
         console.error(error);
@@ -70,6 +78,10 @@ export default class Map extends Vue {
 
     this.squareSize = Math.min(h, w);
   }
+
+  isTruckOnMapItem(mapItem: MapItem) {
+    return this.trucks?.find((p) => p?.mapItem?.id === mapItem.id)?.matricule;
+  }
 }
 </script>
 
@@ -82,19 +94,30 @@ export default class Map extends Vue {
 
   .map {
     display: grid;
-    grid-template-columns: repeat(10, auto);
     height: fit-content;
     margin-top: 20px;
 
     > div {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      position: relative;
+
+      span {
+        position: absolute;
+        bottom: -6px;
+        right: 0px;
+        color: white;
+      }
+
       &.ROAD {
-        background-color: grey;
+        background-color: $road;
       }
       &.BUILDING {
-        background-color: brown;
+        background-color: $building;
       }
       &.GARDEN {
-        background-color: green;
+        background-color: $garden;
       }
     }
 

@@ -16,10 +16,10 @@
       <div id="navbarNav" class="collapse navbar-collapse">
         <ul class="navbar-nav">
           <li class="nav-item">
-            <router-link class="nav-link" to="/truck">Truck</router-link>
+            <router-link class="nav-link" to="/map">Map</router-link>
           </li>
           <li class="nav-item">
-            <router-link class="nav-link" to="/map">Map</router-link>
+            <router-link class="nav-link" to="/truck">Truck</router-link>
           </li>
         </ul>
       </div>
