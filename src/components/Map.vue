@@ -136,44 +136,6 @@ export default class Map extends Vue {
 
       return info;
     }
-
-    const flood = this.incidents?.find(
-      (i) =>
-        i?.mapItem?.id === mapItem.id && i.incidentType === EIncidentType.FLOOD
-    );
-    if (flood) {
-      return {
-        url: require("../assets/pictures/flood.png"),
-        number: flood?.intensity,
-        size: ((flood.intensity || 10) / 10) * this.squareSize + "px",
-      };
-    }
-
-    const accident = this.incidents?.find(
-      (i) =>
-        i?.mapItem?.id === mapItem.id &&
-        i.incidentType === EIncidentType.ACCIDENT
-    );
-    if (accident) {
-      return {
-        url: require("../assets/pictures/accident.png"),
-        number: accident?.intensity,
-        size: ((accident.intensity || 10) / 10) * this.squareSize + "px",
-      };
-    }
-
-    const tornado = this.incidents?.find(
-      (i) =>
-        i?.mapItem?.id === mapItem.id &&
-        i.incidentType === EIncidentType.TORNADO
-    );
-    if (tornado) {
-      return {
-        url: require("../assets/pictures/tornado.png"),
-        number: tornado?.intensity,
-        size: ((tornado.intensity || 10) / 10) * this.squareSize + "px",
-      };
-    }
   }
 }
 </script>
