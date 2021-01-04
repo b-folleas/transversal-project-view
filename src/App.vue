@@ -1,7 +1,7 @@
 <template>
   <div class="app-content">
-    <Navbar />
-    <router-view />
+    <Navbar :dateLastUpdate="dateLastUpdate"/>
+    <router-view @updated="onUpdate" />
   </div>
 </template>
 
@@ -14,7 +14,13 @@ import Navbar from "./components/Navbar.vue";
     Navbar,
   },
 })
-export default class App extends Vue {}
+export default class App extends Vue {
+  public dateLastUpdate? = "";
+
+  onUpdate(date: Date) {
+    this.dateLastUpdate = date.toString()
+  }
+}
 </script>
 
 <style lang="scss">

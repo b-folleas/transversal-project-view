@@ -39,11 +39,15 @@ import IncidentsDataService from "../service/incidentsDataService";
 import { Incident } from "../model/Incident";
 import PacmanLoader from "vue-spinner/src/PacmanLoader.vue";
 import { EIncidentType } from "../model/EIncidentType";
+import { Emit } from "vue-property-decorator";
 
 @Options({
   components: {
     PacmanLoader,
   },
+  emits: {
+    'updated': String
+  }
 })
 export default class Map extends Vue {
   public mapItems: MapItem[] = [];
@@ -53,8 +57,10 @@ export default class Map extends Vue {
   public isLoading = false;
   public nbLines = 0;
   public nbColumns = 0;
+  public refreshInterval = 30;
 
   created() {
+    setInterval(this.getData, 30 * 1000);
     this.getData();
   }
 
@@ -66,7 +72,6 @@ export default class Map extends Vue {
       IncidentsDataService.getAll(),
     ])
       .then((values) => {
-        console.log(values);
         this.mapItems = values[0].data;
         this.trucks = values[1].data;
         this.incidents = values[2].data;
@@ -78,6 +83,8 @@ export default class Map extends Vue {
         this.resize();
 
         this.isLoading = false;
+
+        this.$emit('updated', new Date())
       })
       .catch((error) => {
         console.log(error);
