@@ -10,7 +10,12 @@
       <div
         v-for="mapItem in mapItems"
         v-bind:key="mapItem"
-        :style="{ 'grid-column': mapItem.posX, 'grid-row': mapItem.posY }"
+        :style="{
+          'grid-column': mapItem.posX,
+          'grid-row': mapItem.posY,
+          width: squareSize + 'px',
+          height: squareSize + 'px',
+        }"
         :class="mapItem.ground"
       ></div>
     </div>
@@ -33,6 +38,7 @@ export default class Map extends Vue {
     ["", "", "", "", "", "", "", "", "", ""],
   ];
   public mapItems: MapItem[] = [];
+  public squareSize = 0;
 
   created() {
     MapItemsDataService.getAll()
@@ -43,6 +49,26 @@ export default class Map extends Vue {
       .catch((error) => {
         console.error(error);
       });
+
+    window.addEventListener("resize", this.resize);
+    this.resize();
+  }
+
+  resize() {
+    const vw = Math.max(
+      document.documentElement.clientWidth || 0,
+      window.innerWidth || 0
+    );
+
+    const vh = Math.max(
+      document.documentElement.clientHeight || 0,
+      window.innerHeight || 0
+    );
+
+    const h = vh * 0.85 / 6;
+    const w = vw * 0.9 / 10;
+
+    this.squareSize = Math.min(h, w);
   }
 }
 </script>
@@ -56,12 +82,10 @@ export default class Map extends Vue {
   margin-top: 20px;
 
   .map {
-    width: calc(85vh / 6 * 10);
     display: grid;
     grid-template-columns: repeat(10, auto);
 
     > div {
-      height: calc(85vh / 6);
 
       &.ROAD {
         background-color: grey;
