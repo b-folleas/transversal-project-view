@@ -65,8 +65,8 @@ export default class Map extends Vue {
       window.innerHeight || 0
     );
 
-    const h = vh * 0.85 / 6;
-    const w = vw * 0.9 / 10;
+    const h = (vh * 0.85) / 6;
+    const w = (vw * 0.9) / 10;
 
     this.squareSize = Math.min(h, w);
   }
@@ -79,14 +79,14 @@ export default class Map extends Vue {
 .map-container {
   display: flex;
   justify-content: center;
-  margin-top: 20px;
 
   .map {
     display: grid;
     grid-template-columns: repeat(10, auto);
+    height: fit-content;
+    margin-top: 20px;
 
     > div {
-
       &.ROAD {
         background-color: grey;
       }
@@ -98,18 +98,12 @@ export default class Map extends Vue {
       }
     }
 
-    .line {
-      display: contents;
+    @include for-tablet {
+      margin-top: 100px;
+    }
 
-      .col {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        background-color: aquamarine;
-        border: 1px solid black;
-        content: "";
-        padding-bottom: 100%;
-      }
+    @include for-phone {
+      margin-top: calc(100vh / 4);
     }
   }
 }
