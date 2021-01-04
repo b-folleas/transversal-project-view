@@ -9,14 +9,13 @@
         </li>
       </ul>
     </div>
-
   </div>
 </template>
 
 <script lang="ts">
 import {Vue} from "vue-class-component";
-import TruckDataService from "@/service/truckDataService";
-import {Truck} from "@/model/Truck";
+import TruckDataService from "../service/truckDataService";
+import {Truck} from "../model/Truck";
 
 export default class TruckComponent extends Vue {
 

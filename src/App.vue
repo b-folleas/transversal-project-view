@@ -5,7 +5,7 @@
 
 <script lang="ts">
 import {Options, Vue} from "vue-class-component";
-import Navbar from "@/components/Navbar.vue";
+import Navbar from "./components/Navbar.vue";
 
 @Options({
   components: {
@@ -18,4 +18,12 @@ export default class App extends Vue {
 
 <style lang="scss">
 @import "./assets/scss/bootstrap";
+
+html, body, #app {
+  height: 100%;
+}
+
+#app {
+  margin-bottom: 0px;
+}
 </style>
