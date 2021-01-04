@@ -1,6 +1,8 @@
 <template>
   <div class="map-container">
-    <div class="map">
+    <pacman-loader v-if="isLoading" :loading="isLoading"></pacman-loader>
+
+    <div class="map" v-if="!isLoading">
       <div
         v-for="mapItem in mapItems"
         v-bind:key="mapItem"
@@ -12,15 +14,15 @@
         }"
         :class="mapItem.ground"
       >
-        <div class="square" v-if="isTruckOnMapItem(mapItem)">
+        <div class="square" v-if="(info = isAssetOnSquare(mapItem))">
           <img
             :style="{
-              width: squareSize + 'px',
+              width: info.size,
             }"
-            src="../assets/pictures/truck.png"
-            alt="truck.jpg"
+            :src="info.url"
+            alt="error"
           />
-          <span>{{ isTruckOnMapItem(mapItem) }}</span>
+          <span>{{ info.number }}</span>
         </div>
       </div>
     </div>
@@ -28,38 +30,58 @@
 </template>
 
 <script lang="ts">
-import { Vue } from "vue-class-component";
+import { Options, Vue } from "vue-class-component";
 import { MapItem } from "../model/MapItem";
 import { Truck } from "../model/Truck";
 import MapItemsDataService from "../service/mapItemsDataService";
 import TruckDataService from "../service/truckDataService";
+import IncidentsDataService from "../service/incidentsDataService";
+import { Incident } from "../model/Incident";
+import PacmanLoader from "vue-spinner/src/PacmanLoader.vue";
+import { EIncidentType } from "../model/EIncidentType";
 
+@Options({
+  components: {
+    PacmanLoader,
+  },
+})
 export default class Map extends Vue {
   public mapItems: MapItem[] = [];
   public trucks: Truck[] = [];
+  public incidents: Incident[] = [];
   public squareSize = 0;
+  public isLoading = false;
+  public nbLines = 0;
+  public nbColumns = 0;
 
   created() {
-    MapItemsDataService.getAll()
-      .then((res) => {
-        console.log("mapItems : ", res.data);
-        this.mapItems = res.data;
+    this.getData();
+  }
+
+  getData() {
+    this.isLoading = true;
+    Promise.all([
+      MapItemsDataService.getAll(),
+      TruckDataService.getAll(),
+      IncidentsDataService.getAll(),
+    ])
+      .then((values) => {
+        console.log(values);
+        this.mapItems = values[0].data;
+        this.trucks = values[1].data;
+        this.incidents = values[2].data;
+
+        this.nbLines = Math.max(...this.mapItems.map((m) => m?.posY || 0));
+        this.nbColumns = Math.max(...this.mapItems.map((m) => m?.posX || 0));
+
+        window.addEventListener("resize", this.resize);
+        this.resize();
+
+        this.isLoading = false;
       })
       .catch((error) => {
-        console.error(error);
+        console.log(error);
       });
-
-    TruckDataService.getAll()
-      .then((res) => {
-        console.log("trucks : ", res.data);
-        this.trucks = res.data;
-      })
-      .catch((error) => {
-        console.error(error);
-      });
-
-    window.addEventListener("resize", this.resize);
-    this.resize();
   }
 
   resize() {
@@ -73,14 +95,85 @@ export default class Map extends Vue {
       window.innerHeight || 0
     );
 
-    const h = (vh * 0.85) / 6;
-    const w = (vw * 0.9) / 10;
+    const h = (vh * 0.85) / this.nbLines;
+    const w = (vw * 0.9) / this.nbColumns;
 
     this.squareSize = Math.min(h, w);
   }
 
-  isTruckOnMapItem(mapItem: MapItem) {
-    return this.trucks?.find((p) => p?.mapItem?.id === mapItem.id)?.matricule;
+  isAssetOnSquare(mapItem: MapItem) {
+    const truck = this.trucks?.find((p) => p?.mapItem?.id === mapItem.id);
+    if (truck) {
+      return {
+        url: require("../assets/pictures/truck.png"),
+        number: truck.matricule,
+        size: this.squareSize + "px",
+      };
+    }
+
+    const incident = this.incidents?.find((i) => i?.mapItem?.id === mapItem.id);
+    if (incident) {
+      const info = {
+        url: "",
+        number: incident?.intensity,
+        size: ((incident.intensity || 10) / 10) * this.squareSize + "px",
+      };
+
+      switch (incident.incidentType) {
+        case EIncidentType.FIRE:
+          info.url = require("../assets/pictures/fire.png");
+          break;
+        case EIncidentType.FLOOD:
+          info.url = require("../assets/pictures/flood.png");
+          break;
+        case EIncidentType.ACCIDENT:
+          info.url = require("../assets/pictures/accident.png");
+          break;
+        case EIncidentType.TORNADO:
+          info.url = require("../assets/pictures/tornado.png");
+          break;
+      }
+
+      return info;
+    }
+
+    const flood = this.incidents?.find(
+      (i) =>
+        i?.mapItem?.id === mapItem.id && i.incidentType === EIncidentType.FLOOD
+    );
+    if (flood) {
+      return {
+        url: require("../assets/pictures/flood.png"),
+        number: flood?.intensity,
+        size: ((flood.intensity || 10) / 10) * this.squareSize + "px",
+      };
+    }
+
+    const accident = this.incidents?.find(
+      (i) =>
+        i?.mapItem?.id === mapItem.id &&
+        i.incidentType === EIncidentType.ACCIDENT
+    );
+    if (accident) {
+      return {
+        url: require("../assets/pictures/accident.png"),
+        number: accident?.intensity,
+        size: ((accident.intensity || 10) / 10) * this.squareSize + "px",
+      };
+    }
+
+    const tornado = this.incidents?.find(
+      (i) =>
+        i?.mapItem?.id === mapItem.id &&
+        i.incidentType === EIncidentType.TORNADO
+    );
+    if (tornado) {
+      return {
+        url: require("../assets/pictures/tornado.png"),
+        number: tornado?.intensity,
+        size: ((tornado.intensity || 10) / 10) * this.squareSize + "px",
+      };
+    }
   }
 }
 </script>
@@ -105,9 +198,18 @@ export default class Map extends Vue {
 
       span {
         position: absolute;
-        bottom: -6px;
+        bottom: 0px;
         right: 0px;
         color: white;
+        background: black;
+        width: 15px;
+        height: 15px;
+        text-align: center;
+        font-size: 10px;
+
+        @include for-phone {
+          display: none;
+        }
       }
 
       &.ROAD {
@@ -128,6 +230,11 @@ export default class Map extends Vue {
     @include for-phone {
       margin-top: calc(100vh / 4);
     }
+  }
+
+  .v-spinner {
+    position: absolute !important;
+    bottom: 50%;
   }
 }
 </style>
