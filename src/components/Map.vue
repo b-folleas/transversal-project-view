@@ -20,7 +20,7 @@
               width: info.size,
             }"
             :src="info.url"
-            alt="error"
+            alt="Incident"
           />
           <span>{{ info.number }}</span>
         </div>
@@ -44,9 +44,6 @@ import { Emit } from "vue-property-decorator";
 @Options({
   components: {
     PacmanLoader,
-  },
-  emits: {
-    'updated': String
   }
 })
 export default class Map extends Vue {
@@ -58,10 +55,15 @@ export default class Map extends Vue {
   public nbLines = 0;
   public nbColumns = 0;
   public refreshInterval = 30;
+  public interval = 0;
 
   created() {
-    setInterval(this.getData, 30 * 1000);
+    this.interval = setInterval(this.getData, 30 * 1000);
     this.getData();
+  }
+
+  destroyed() {
+    clearInterval(this.interval);
   }
 
   getData() {
@@ -84,7 +86,7 @@ export default class Map extends Vue {
 
         this.isLoading = false;
 
-        this.$emit('updated', new Date())
+        this.$emit('updated', new Date());
       })
       .catch((error) => {
         console.log(error);

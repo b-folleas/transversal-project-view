@@ -54,6 +54,8 @@ export default class Navbar extends Vue {
       }
       if (seconds > 0) {
         this.content += seconds + " seconds ago.";
+      } else {
+        this.content = "";
       }
     }, 1000);
   }
