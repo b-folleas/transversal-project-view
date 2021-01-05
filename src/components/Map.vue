@@ -48,7 +48,6 @@ import { Emit } from "vue-property-decorator";
 })
 export default class Map extends Vue {
   public mapItems: MapItem[] = [];
-  public trucks: Truck[] = [];
   public incidents: Incident[] = [];
   public squareSize = 0;
   public isLoading = false;
@@ -70,13 +69,11 @@ export default class Map extends Vue {
     this.isLoading = true;
     Promise.all([
       MapItemsDataService.getAll(),
-      TruckDataService.getAll(),
       IncidentsDataService.getAll(),
     ])
       .then((values) => {
         this.mapItems = values[0].data;
-        this.trucks = values[1].data;
-        this.incidents = values[2].data;
+        this.incidents = values[1].data;
 
         this.nbLines = Math.max(...this.mapItems.map((m) => m?.posY || 0));
         this.nbColumns = Math.max(...this.mapItems.map((m) => m?.posX || 0));
@@ -111,15 +108,6 @@ export default class Map extends Vue {
   }
 
   isAssetOnSquare(mapItem: MapItem) {
-    const truck = this.trucks?.find((p) => p?.mapItem?.id === mapItem.id);
-    if (truck) {
-      return {
-        url: require("../assets/pictures/truck.png"),
-        number: truck.matricule,
-        size: this.squareSize + "px",
-      };
-    }
-
     const incident = this.incidents?.find((i) => i?.mapItem?.id === mapItem.id);
     if (incident) {
       const info = {

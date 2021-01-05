@@ -18,9 +18,6 @@
           <li class="nav-item">
             <router-link class="nav-link" to="/map">Map</router-link>
           </li>
-          <li class="nav-item">
-            <router-link class="nav-link" to="/truck">Truck</router-link>
-          </li>
         </ul>
         <p class="timestamp">{{ content }}</p>
       </div>
