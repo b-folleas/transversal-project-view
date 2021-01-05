@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "serve": "vue-cli-service serve --fix --mode=development",
+    "serve": "vue-cli-service serve --fix --mode=development --port 8084",
     "build": "vue-cli-service build --fix --mode=development",
     "lint": "vue-cli-service lint --fix"
   },
