@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "serve": "vue-cli-service serve --fix --mode=development --port 8084",
+    "serve-prod": "vue-cli-service serve --fix --mode=production --port 8084",
     "build": "vue-cli-service build --fix --mode=development",
     "lint": "vue-cli-service lint --fix"
   },
