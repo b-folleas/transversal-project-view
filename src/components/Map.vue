@@ -22,7 +22,6 @@
             :src="info.url"
             alt="Incident"
           />
-          <span>{{ info.number }}</span>
         </div>
       </div>
     </div>
@@ -36,10 +35,12 @@ import { Truck } from "../model/Truck";
 import MapItemsDataService from "../service/mapItemsDataService";
 import TruckDataService from "../service/truckDataService";
 import IncidentsDataService from "../service/incidentsDataService";
+import BarracksDataService from "../service/barracksDataService";
 import { Incident } from "../model/Incident";
 import PacmanLoader from "vue-spinner/src/PacmanLoader.vue";
 import { EIncidentType } from "../model/EIncidentType";
 import { Emit } from "vue-property-decorator";
+import { Barrack } from "../model/Barrack";
 
 @Options({
   components: {
@@ -50,6 +51,7 @@ export default class Map extends Vue {
   public mapItems: MapItem[] = [];
   public trucks: Truck[] = [];
   public incidents: Incident[] = [];
+  public barracks: Barrack[] = [];
   public squareSize = 0;
   public isLoading = false;
   public nbLines = 0;
@@ -72,11 +74,13 @@ export default class Map extends Vue {
       MapItemsDataService.getAll(),
       TruckDataService.getAll(),
       IncidentsDataService.getAll(),
+      BarracksDataService.getAll(),
     ])
       .then((values) => {
         this.mapItems = values[0].data;
         this.trucks = values[1].data;
         this.incidents = values[2].data;
+        this.barracks = values[3].data;
 
         this.nbLines = Math.max(...this.mapItems.map((m) => m?.posY || 0));
         this.nbColumns = Math.max(...this.mapItems.map((m) => m?.posX || 0));
@@ -111,11 +115,18 @@ export default class Map extends Vue {
   }
 
   isAssetOnSquare(mapItem: MapItem) {
+    const barrack = this.barracks?.find((b) => b?.mapItem?.id === mapItem.id);
+    if (barrack) {
+      return {
+        url: require("../assets/pictures/barrack.png"),
+        size: this.squareSize + "px",
+      };
+    }
+
     const truck = this.trucks?.find((p) => p?.mapItem?.id === mapItem.id);
     if (truck) {
       return {
         url: require("../assets/pictures/truck.png"),
-        number: truck.matricule,
         size: this.squareSize + "px",
       };
     }
@@ -124,7 +135,6 @@ export default class Map extends Vue {
     if (incident) {
       const info = {
         url: "",
-        number: incident?.intensity,
         size: ((incident.intensity || 10) / 10) * this.squareSize + "px",
       };
 
@@ -166,22 +176,6 @@ export default class Map extends Vue {
       justify-content: center;
       align-items: center;
       position: relative;
-
-      span {
-        position: absolute;
-        bottom: 0px;
-        right: 0px;
-        color: white;
-        background: black;
-        width: 15px;
-        height: 15px;
-        text-align: center;
-        font-size: 10px;
-
-        @include for-phone {
-          display: none;
-        }
-      }
 
       &.ROAD {
         background-color: $road;
