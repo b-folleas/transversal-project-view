@@ -22,6 +22,11 @@
             :src="info.url"
             alt="Incident"
           />
+          <div
+            v-if="info.description"
+            v-html="info.description"
+            class="info-tooltip"
+          ></div>
         </div>
       </div>
     </div>
@@ -117,6 +122,7 @@ export default class Map extends Vue {
       return {
         url: require("../assets/pictures/barrack.png"),
         size: this.squareSize + "px",
+        description: "<p><strong>Name : </strong>" + barrack.name + "</p>",
       };
     }
 
@@ -125,6 +131,13 @@ export default class Map extends Vue {
       const info = {
         url: "",
         size: ((incident.intensity || 10) / 10) * this.squareSize + "px",
+        description:
+          "<p><strong>Type : </strong>" +
+          incident.incidentType +
+          "</p>" +
+          "<p><strong>Intensité : </strong>" +
+          incident.intensity +
+          "</p>",
       };
 
       switch (incident.incidentType) {
@@ -161,10 +174,59 @@ export default class Map extends Vue {
     margin-top: 20px;
 
     > div {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      position: relative;
+      .square {
+        position: relative;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        width: 100%;
+        height: 100%;
+
+        .info-tooltip {
+          visibility: hidden;
+          opacity: 0;
+          background-color: white;
+          color: #555;
+          text-align: center;
+          padding: 5px;
+          border-radius: 5px;
+          position: absolute;
+          z-index: 1;
+          top: 5px;
+          left: 110%;
+          transition: opacity 0.3s;
+
+          p {
+            white-space: nowrap;
+            margin: 0px;
+            text-align: initial;
+
+            @media (max-width: 1200px) {
+              font-size: 10px;
+            }
+
+            @include for-phone {
+              font-size: 5px;
+            }
+          }
+
+          &::after {
+            content: "";
+            position: absolute;
+            right: 100%;
+            bottom: 50%;
+            margin-bottom: -5px;
+            border-width: 5px;
+            border-style: solid;
+            border-color: transparent white transparent transparent;
+          }
+        }
+
+        &:hover .info-tooltip {
+          visibility: visible;
+          opacity: 1;
+        }
+      }
 
       &.ROAD {
         background-color: $road;
