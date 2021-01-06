@@ -22,7 +22,6 @@
             :src="info.url"
             alt="Incident"
           />
-          <span>{{ info.number }}</span>
         </div>
       </div>
     </div>
@@ -40,6 +39,8 @@ import { Incident } from "../model/Incident";
 import PacmanLoader from "vue-spinner/src/PacmanLoader.vue";
 import { EIncidentType } from "../model/EIncidentType";
 import { Emit } from "vue-property-decorator";
+import BarracksDataService from "../service/barracksDataService";
+import { Barrack } from "../model/Barrack";
 
 @Options({
   components: {
@@ -49,6 +50,7 @@ import { Emit } from "vue-property-decorator";
 export default class Map extends Vue {
   public mapItems: MapItem[] = [];
   public incidents: Incident[] = [];
+  public barracks: Barrack[] = [];
   public squareSize = 0;
   public isLoading = false;
   public nbLines = 0;
@@ -70,10 +72,12 @@ export default class Map extends Vue {
     Promise.all([
       MapItemsDataService.getAll(),
       IncidentsDataService.getAll(),
+      BarracksDataService.getAll(),
     ])
       .then((values) => {
         this.mapItems = values[0].data;
         this.incidents = values[1].data;
+        this.barracks = values[2].data;
 
         this.nbLines = Math.max(...this.mapItems.map((m) => m?.posY || 0));
         this.nbColumns = Math.max(...this.mapItems.map((m) => m?.posX || 0));
@@ -108,11 +112,18 @@ export default class Map extends Vue {
   }
 
   isAssetOnSquare(mapItem: MapItem) {
+    const barrack = this.barracks?.find((b) => b?.mapItem?.id === mapItem.id);
+    if (barrack) {
+      return {
+        url: require("../assets/pictures/barrack.png"),
+        size: this.squareSize + "px",
+      };
+    }
+
     const incident = this.incidents?.find((i) => i?.mapItem?.id === mapItem.id);
     if (incident) {
       const info = {
         url: "",
-        number: incident?.intensity,
         size: ((incident.intensity || 10) / 10) * this.squareSize + "px",
       };
 
@@ -154,22 +165,6 @@ export default class Map extends Vue {
       justify-content: center;
       align-items: center;
       position: relative;
-
-      span {
-        position: absolute;
-        bottom: 0px;
-        right: 0px;
-        color: white;
-        background: black;
-        width: 15px;
-        height: 15px;
-        text-align: center;
-        font-size: 10px;
-
-        @include for-phone {
-          display: none;
-        }
-      }
 
       &.ROAD {
         background-color: $road;
