@@ -42,7 +42,6 @@ export default class Navbar extends Vue {
   content = "";
 
   created() {
-    console.log("updated!");
     setInterval(() => {
       const time = new Date().getTime() / 1000 - new Date(this.dateLastUpdate).getTime() / 1000;
       const minutes = Math.floor(time / 60)

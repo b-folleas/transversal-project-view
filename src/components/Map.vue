@@ -61,31 +61,49 @@ export default class Map extends Vue {
   public isLoading = false;
   public nbLines = 0;
   public nbColumns = 0;
-  public refreshInterval = 30;
-  public interval = 0;
+
+  public initInterval?: number;
+  public dataInterval?: number;
+
+  public refreshInitInterval = 10;
+  public refreshDataInterval = 5;
 
   created() {
-    this.interval = setInterval(this.getData, 30 * 1000);
-    this.getData();
+    this.initInterval = setInterval(this.init, this.refreshInitInterval * 1000);
+    this.init();
   }
 
   destroyed() {
-    clearInterval(this.interval);
+    clearInterval(this.dataInterval);
+  }
+
+  init() {
+    this.isLoading = true;
+    Promise.all([MapItemsDataService.getAll(), BarracksDataService.getAll()])
+      .then((values) => {
+        this.mapItems = values[0].data;
+        this.barracks = values[1].data;
+
+        if (this.mapItems.length && this.barracks.length) {
+          this.dataInterval = setInterval(
+            this.getData,
+            this.refreshDataInterval * 1000
+          );
+          this.getData();
+
+          clearInterval(this.initInterval);
+        }
+      })
+      .catch((error) => {
+        console.log(error);
+      });
   }
 
   getData() {
-    this.isLoading = true;
-    Promise.all([
-      MapItemsDataService.getAll(),
-      TruckDataService.getAll(),
-      IncidentsDataService.getAll(),
-      BarracksDataService.getAll(),
-    ])
+    Promise.all([TruckDataService.getAll(), IncidentsDataService.getAll()])
       .then((values) => {
-        this.mapItems = values[0].data;
-        this.trucks = values[1].data;
-        this.incidents = values[2].data;
-        this.barracks = values[3].data;
+        this.trucks = values[0].data;
+        this.incidents = values[1].data;
 
         this.nbLines = Math.max(...this.mapItems.map((m) => m?.posY || 0));
         this.nbColumns = Math.max(...this.mapItems.map((m) => m?.posX || 0));
