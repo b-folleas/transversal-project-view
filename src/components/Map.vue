@@ -1,6 +1,6 @@
 <template>
   <div class="map-container">
-    <pacman-loader v-if="isLoading" :loading="isLoading"></pacman-loader>
+    <pacman-loader v-if="isLoading" :color="'#195cd6'" :loading="isLoading"></pacman-loader>
 
     <div class="map" v-if="!isLoading">
       <div
@@ -65,33 +65,45 @@ export default class Map extends Vue {
   public initInterval?: number;
   public dataInterval?: number;
 
-  public refreshInitInterval = 10;
+  public refreshInitInterval = 60;
   public refreshDataInterval = 5;
 
   created() {
-    this.initInterval = setInterval(this.init, this.refreshInitInterval * 1000);
-    this.init();
+    this.getBaseData();
+    window.addEventListener("resize", this.resize);
   }
 
   destroyed() {
+    clearInterval(this.initInterval);
     clearInterval(this.dataInterval);
   }
 
-  init() {
+  getBaseData() {
+    console.log("Get barracks and mapItems");
+
+    if (!this.initInterval) {
+      this.initInterval = setInterval(
+        this.getBaseData,
+        this.refreshInitInterval * 1000
+      );
+    }
+
     this.isLoading = true;
     Promise.all([MapItemsDataService.getAll(), BarracksDataService.getAll()])
       .then((values) => {
         this.mapItems = values[0].data;
         this.barracks = values[1].data;
 
-        if (this.mapItems.length && this.barracks.length) {
-          this.dataInterval = setInterval(
-            this.getData,
-            this.refreshDataInterval * 1000
-          );
-          this.getData();
+        this.nbLines = Math.max(...this.mapItems.map((m) => m?.posY || 0));
+        this.nbColumns = Math.max(...this.mapItems.map((m) => m?.posX || 0));
 
-          clearInterval(this.initInterval);
+        this.resize();
+
+        this.isLoading = false;
+
+        // only first time, to ensure basic data are already present
+        if (!this.trucks.length && !this.incidents.length) {
+          this.getData();
         }
       })
       .catch((error) => {
@@ -100,18 +112,19 @@ export default class Map extends Vue {
   }
 
   getData() {
+    console.log("Get trucks and incidents");
+
+    if (!this.dataInterval) {
+      this.dataInterval = setInterval(
+        this.getData,
+        this.refreshDataInterval * 1000
+      );
+    }
+
     Promise.all([TruckDataService.getAll(), IncidentsDataService.getAll()])
       .then((values) => {
         this.trucks = values[0].data;
         this.incidents = values[1].data;
-
-        this.nbLines = Math.max(...this.mapItems.map((m) => m?.posY || 0));
-        this.nbColumns = Math.max(...this.mapItems.map((m) => m?.posX || 0));
-
-        window.addEventListener("resize", this.resize);
-        this.resize();
-
-        this.isLoading = false;
 
         this.$emit("updated", new Date());
       })
