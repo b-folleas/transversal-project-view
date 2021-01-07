@@ -1,6 +1,10 @@
 <template>
   <div class="map-container">
-    <pacman-loader v-if="isLoading" :color="'#195cd6'" :loading="isLoading"></pacman-loader>
+    <pacman-loader
+      v-if="isLoading"
+      :color="'#195cd6'"
+      :loading="isLoading"
+    ></pacman-loader>
 
     <div class="map" v-if="!isLoading">
       <div
@@ -14,17 +18,24 @@
         }"
         :class="mapItem.ground"
       >
-        <div class="square" v-if="(info = isAssetOnSquare(mapItem))">
+        <div
+          class="square"
+          v-if="(assets = getAssetsOnSquare(mapItem))"
+          :class="'n-' + assets.data.length.toString()"
+        >
           <img
+            v-for="asset in assets.data"
+            v-bind:key="asset"
+            :class="asset.name"
             :style="{
-              width: info.size,
+              width: asset.size,
             }"
-            :src="info.url"
-            alt="Incident"
+            :src="asset.url"
+            alt="asset.name"
           />
           <div
-            v-if="info.description"
-            v-html="info.description"
+            v-if="assets.description"
+            v-html="assets.description"
             class="info-tooltip"
           ></div>
         </div>
@@ -150,49 +161,60 @@ export default class Map extends Vue {
     this.squareSize = Math.min(h, w);
   }
 
-  isAssetOnSquare(mapItem: MapItem) {
-    const barrack = this.barracks?.find((b) => b?.mapItem?.id === mapItem.id);
-    if (barrack) {
-      return {
+  getAssetsOnSquare(mapItem: MapItem) {
+    const barracks = this.barracks?.filter(
+      (b) => b?.mapItem?.id === mapItem.id
+    );
+    const trucks = this.trucks?.filter((p) => p?.mapItem?.id === mapItem.id);
+    const incidents = this.incidents?.filter(
+      (i) => i?.mapItem?.id === mapItem.id
+    );
+
+    const dataInfos: any[] = [];
+    let description = "";
+
+    barracks.forEach((b) => {
+      dataInfos.push({
+        name: "barrack",
         url: require("../assets/pictures/barrack.png"),
-        size: this.squareSize + "px",
-        description: "<p><strong>Name : </strong>" + barrack.name + "</p>",
-      };
-    }
+      });
 
-    const truck = this.trucks?.find((p) => p?.mapItem?.id === mapItem.id);
-    if (truck) {
-      return {
+      description +=
+        (description.length ? "<br>" : "") +
+        "<p><strong>Caserne</strong></p>" +
+        "<p><strong>Name : </strong>" +
+        b.name +
+        "</p>";
+    });
+
+    trucks.forEach((t) => {
+      dataInfos.push({
+        name: "truck",
         url: require("../assets/pictures/truck.png"),
-        size: this.squareSize + "px",
-        description:
-          "<p><strong>Matricule : </strong>" +
-          truck.matricule +
-          "</p>" +
-          "<p><strong>Caserne : </strong>" +
-          truck.barrack?.name +
-          "</p>" +
-          "<p><strong>Disponibilité : </strong>" +
-          (truck.availability ? "Oui" : "Non") +
-          "</p>",
-      };
-    }
+      });
 
-    const incident = this.incidents?.find((i) => i?.mapItem?.id === mapItem.id);
-    if (incident) {
+      description +=
+        (description.length ? "<br>" : "") +
+        "<p><strong>Camion</strong></p>" +
+        "<p><strong>Matricule : </strong>" +
+        t.matricule +
+        "</p>" +
+        "<p><strong>Caserne : </strong>" +
+        t.barrack?.name +
+        "</p>" +
+        "<p><strong>Disponibilité : </strong>" +
+        (t.availability ? "Oui" : "Non") +
+        "</p>";
+    });
+
+    incidents.forEach((i) => {
       const info = {
+        name: "incident",
         url: "",
-        size: ((incident.intensity || 10) / 10) * this.squareSize + "px",
-        description:
-          "<p><strong>Type : </strong>" +
-          incident.incidentType +
-          "</p>" +
-          "<p><strong>Intensité : </strong>" +
-          incident.intensity +
-          "</p>",
+        size: (i.intensity || 0) * 10 + "%",
       };
 
-      switch (incident.incidentType) {
+      switch (i.incidentType) {
         case EIncidentType.FIRE:
           info.url = require("../assets/pictures/fire.png");
           break;
@@ -207,8 +229,23 @@ export default class Map extends Vue {
           break;
       }
 
-      return info;
-    }
+      dataInfos.push(info);
+
+      description +=
+        (description.length ? "<br>" : "") +
+        "<p><strong>Incident</strong></p>" +
+        "<p><strong>Type : </strong>" +
+        i.incidentType?.toLowerCase() +
+        "</p>" +
+        "<p><strong>Intensité : </strong>" +
+        i.intensity +
+        "</p>";
+    });
+
+    return {
+      data: dataInfos,
+      description: description,
+    };
   }
 }
 </script>
@@ -227,12 +264,10 @@ export default class Map extends Vue {
 
     > div {
       .square {
-        position: relative;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        width: 100%;
+        display: grid;
+        grid-gap: 2%;
         height: 100%;
+        position: relative;
 
         .info-tooltip {
           visibility: hidden;
@@ -247,6 +282,7 @@ export default class Map extends Vue {
           top: 5px;
           left: 110%;
           transition: opacity 0.3s;
+          border: 1px solid black;
 
           p {
             white-space: nowrap;
@@ -263,10 +299,11 @@ export default class Map extends Vue {
           }
 
           &::after {
+            border-right: 1px solid black;
             content: "";
             position: absolute;
             right: 100%;
-            bottom: 50%;
+            top: 5%;
             margin-bottom: -5px;
             border-width: 5px;
             border-style: solid;
@@ -277,6 +314,52 @@ export default class Map extends Vue {
         &:hover .info-tooltip {
           visibility: visible;
           opacity: 1;
+        }
+
+        img {
+          object-fit: contain;
+          width: 100%;
+          max-height: 100%;
+          display: flex;
+          align-self: center;
+          justify-self: center;
+        }
+
+        &.n-2 {
+          grid-template-rows: minmax(0, 1fr) minmax(0, 1fr);
+          grid-template-columns: minmax(0, 1fr);
+          grid-template-areas:
+            "top"
+            "bottom";
+
+          .barrack {
+            grid-area: top;
+          }
+
+          .truck,
+          .incident {
+            grid-area: bottom;
+          }
+        }
+
+        &.n-3 {
+          grid-template-rows: minmax(0, 1fr) minmax(0, 1fr);
+          grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+          grid-template-areas:
+            "top top"
+            "bottom-left bottom-right";
+
+          .barrack {
+            grid-area: top;
+          }
+
+          .truck {
+            grid-area: bottom-left;
+          }
+
+          .incident {
+            grid-area: bottom-right;
+          }
         }
       }
 
