@@ -66,7 +66,6 @@ import { Barrack } from "../model/Barrack";
 export default class Map extends Vue {
   public mapItems: MapItem[] = [];
   public incidents: Incident[] = [];
-  public barracks: Barrack[] = [];
   public squareSize = 0;
   public isLoading = false;
   public nbLines = 0;
@@ -99,10 +98,9 @@ export default class Map extends Vue {
     }
 
     this.isLoading = true;
-    Promise.all([MapItemsDataService.getAll(), BarracksDataService.getAll()])
+    Promise.all([MapItemsDataService.getAll()])
       .then((values) => {
         this.mapItems = values[0].data;
-        this.barracks = values[1].data;
 
         this.nbLines = Math.max(...this.mapItems.map((m) => m?.posY || 0));
         this.nbColumns = Math.max(...this.mapItems.map((m) => m?.posX || 0));
@@ -160,29 +158,12 @@ export default class Map extends Vue {
   }
 
   getAssetsOnSquare(mapItem: MapItem) {
-    const barracks = this.barracks?.filter(
-      (b) => b?.mapItem?.id === mapItem.id
-    );
     const incidents = this.incidents?.filter(
       (i) => i?.mapItem?.id === mapItem.id
     );
 
     const dataInfos: any[] = [];
     let description = "";
-
-    barracks.forEach((b) => {
-      dataInfos.push({
-        name: "barrack",
-        url: require("../assets/pictures/barrack.png"),
-      });
-
-      description +=
-        (description.length ? "<br>" : "") +
-        "<p><strong>Caserne</strong></p>" +
-        "<p><strong>Name : </strong>" +
-        b.name +
-        "</p>";
-    });
 
     incidents.forEach((i) => {
       const info = {
