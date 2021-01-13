@@ -1,4 +1,33 @@
 <template>
+  <div class="filters">
+    <div class="filter btn btn-outline-primary active m-1">
+      <label> Trucks </label>
+      <input
+        type="checkbox"
+        autocomplete="off"
+        v-model="displayTruck"
+      />
+    </div>
+
+    <div class="filter btn btn-outline-primary active m-1">
+      <label> Barracks </label>
+      <input
+        type="checkbox"
+        autocomplete="off"
+        v-model="displayBarrack"
+      />
+    </div>
+
+    <div class="filter btn btn-outline-primary active m-1">
+      <label> Incidents </label>
+      <input
+        type="checkbox"
+        autocomplete="off"
+        v-model="displayIncident"
+      />
+    </div>
+  </div>
+
   <div class="map-container">
     <pacman-loader
       v-if="isLoading"
@@ -31,7 +60,7 @@
               width: asset.size,
             }"
             :src="asset.url"
-            alt="asset.name"
+            :alt="asset.name"
           />
           <div
             v-if="assets.description"
@@ -78,6 +107,10 @@ export default class Map extends Vue {
 
   public refreshInitInterval = 60;
   public refreshDataInterval = 5;
+
+  public displayBarrack = true;
+  public displayTruck = true;
+  public displayIncident = true;
 
   created() {
     this.getBaseData();
@@ -162,11 +195,11 @@ export default class Map extends Vue {
   }
 
   getAssetsOnSquare(mapItem: MapItem) {
-    const barracks = this.barracks?.filter(
+    const barracks = !this.displayBarrack ? [] : this.barracks?.filter(
       (b) => b?.mapItem?.id === mapItem.id
     );
-    const trucks = this.trucks?.filter((p) => p?.mapItem?.id === mapItem.id);
-    const incidents = this.incidents?.filter(
+    const trucks = !this.displayTruck ? [] : this.trucks?.filter((p) => p?.mapItem?.id === mapItem.id);
+    const incidents = !this.displayIncident ? [] : this.incidents?.filter(
       (i) => i?.mapItem?.id === mapItem.id
     );
 
@@ -226,6 +259,7 @@ export default class Map extends Vue {
           break;
         case EIncidentType.TORNADO:
           info.url = require("../assets/pictures/tornado.png");
+          info.size = (i.intensity || 0) * 10 - 15 + "%"
           break;
       }
 
@@ -252,6 +286,21 @@ export default class Map extends Vue {
 
 <style lang="scss">
 @import "../assets/scss/variables";
+
+.filters {
+  display: flex;
+  justify-content: center;
+  margin-top: 10px;
+
+  .filter {
+    display: flex;
+    align-items: center;
+
+    label {
+      margin-right: 10px;
+    }
+  }
+}
 
 .map-container {
   display: flex;
